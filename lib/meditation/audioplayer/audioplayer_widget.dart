@@ -7,6 +7,7 @@ import '/flutter_flow/flutter_flow_widgets.dart';
 import '/meditation/next/next_widget.dart';
 import '/meditation/playlistsetting/addtoplaylist/addtoplaylist_widget.dart';
 import 'dart:ui';
+import '/custom_code/card_stroke.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/custom_code/widgets/index.dart' as custom_widgets;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -365,141 +366,149 @@ class _AudioplayerWidgetState extends State<AudioplayerWidget> {
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                FlutterFlowIconButton(
-                                  borderColor: Color(0xC2D4D2D2),
-                                  borderRadius: 5.0,
-                                  borderWidth: 2.0,
-                                  buttonSize: 35.0,
-                                  fillColor: Color(0xFF0F0F0F),
-                                  icon: Icon(
-                                    Icons.download,
-                                    color: Color(0xFFFDC2FE),
-                                    size: 15.0,
-                                  ),
-                                  onPressed: () async {
-                                    await DownloadsRecord.collection
-                                        .doc()
-                                        .set(createDownloadsRecordData(
-                                          songUrl: rowSongsRecord.songUrl,
-                                          songName: rowSongsRecord.title,
-                                          user: currentUserReference,
-                                          coverimage:
-                                              rowSongsRecord.songCoverImage,
-                                          num: rowSongsRecord.num,
-                                        ));
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Song saved successfully!',
-                                          style: TextStyle(
-                                            color: FlutterFlowTheme.of(context)
-                                                .primaryText,
+                                Container(
+                                  // Gradient fade stroke, same as the dashboard cards.
+                                  foregroundDecoration: const GradientStroke(radius: 5.0),
+                                  child: FlutterFlowIconButton(
+                                    borderRadius: 5.0,
+                                    buttonSize: 35.0,
+                                    fillColor: Color(0xFF0F0F0F),
+                                    icon: Icon(
+                                      Icons.download,
+                                      color: Color(0xFFFDC2FE),
+                                      size: 15.0,
+                                    ),
+                                    onPressed: () async {
+                                      await DownloadsRecord.collection
+                                          .doc()
+                                          .set(createDownloadsRecordData(
+                                            songUrl: rowSongsRecord.songUrl,
+                                            songName: rowSongsRecord.title,
+                                            user: currentUserReference,
+                                            coverimage:
+                                                rowSongsRecord.songCoverImage,
+                                            num: rowSongsRecord.num,
+                                          ));
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            'Song saved successfully!',
+                                            style: TextStyle(
+                                              color: FlutterFlowTheme.of(context)
+                                                  .primaryText,
+                                            ),
                                           ),
+                                          duration: Duration(milliseconds: 4000),
+                                          backgroundColor:
+                                              FlutterFlowTheme.of(context)
+                                                  .secondary,
                                         ),
-                                        duration: Duration(milliseconds: 4000),
-                                        backgroundColor:
-                                            FlutterFlowTheme.of(context)
-                                                .secondary,
-                                      ),
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
                                 ),
                                 if (rowSongsRecord.likedBy
                                         .contains(currentUserReference) ==
                                     false)
-                                  FlutterFlowIconButton(
-                                    borderColor: Color(0xC2D4D2D2),
-                                    borderRadius: 5.0,
-                                    borderWidth: 2.0,
-                                    buttonSize: 35.0,
-                                    fillColor: Color(0xFF0F0F0F),
-                                    icon: Icon(
-                                      Icons.favorite_border,
-                                      color: Color(0xFFFDC2FE),
-                                      size: 15.0,
-                                    ),
-                                    onPressed: () async {
-                                      await FFAppState().activeSongRef!.update({
-                                        ...mapToFirestore(
-                                          {
-                                            'liked_by': FieldValue.arrayUnion(
-                                                [currentUserReference]),
-                                          },
-                                        ),
-                                      });
+                                  Container(
+                                    // Gradient fade stroke, same as the dashboard cards.
+                                    foregroundDecoration: const GradientStroke(radius: 5.0),
+                                    child: FlutterFlowIconButton(
+                                      borderRadius: 5.0,
+                                      buttonSize: 35.0,
+                                      fillColor: Color(0xFF0F0F0F),
+                                      icon: Icon(
+                                        Icons.favorite_border,
+                                        color: Color(0xFFFDC2FE),
+                                        size: 15.0,
+                                      ),
+                                      onPressed: () async {
+                                        await FFAppState().activeSongRef!.update({
+                                          ...mapToFirestore(
+                                            {
+                                              'liked_by': FieldValue.arrayUnion(
+                                                  [currentUserReference]),
+                                            },
+                                          ),
+                                        });
 
-                                      await currentUserReference!.update({
-                                        ...mapToFirestore(
-                                          {
-                                            'favsongs': FieldValue.arrayUnion(
-                                                [rowSongsRecord.num]),
-                                          },
-                                        ),
-                                      });
-                                    },
+                                        await currentUserReference!.update({
+                                          ...mapToFirestore(
+                                            {
+                                              'favsongs': FieldValue.arrayUnion(
+                                                  [rowSongsRecord.num]),
+                                            },
+                                          ),
+                                        });
+                                      },
+                                    ),
                                   ),
                                 if (rowSongsRecord.likedBy
                                         .contains(currentUserReference) ==
                                     true)
-                                  FlutterFlowIconButton(
-                                    borderColor: Color(0xC2D4D2D2),
+                                  Container(
+                                    // Gradient fade stroke, same as the dashboard cards.
+                                    foregroundDecoration: const GradientStroke(radius: 5.0),
+                                    child: FlutterFlowIconButton(
+                                      borderRadius: 5.0,
+                                      buttonSize: 35.0,
+                                      fillColor: Color(0xFF0F0F0F),
+                                      icon: Icon(
+                                        Icons.favorite_sharp,
+                                        color: Color(0xFFFDC2FE),
+                                        size: 15.0,
+                                      ),
+                                      onPressed: () async {
+                                        await FFAppState().activeSongRef!.update({
+                                          ...mapToFirestore(
+                                            {
+                                              'liked_by': FieldValue.arrayRemove(
+                                                  [currentUserReference]),
+                                            },
+                                          ),
+                                        });
+
+                                        await currentUserReference!.update({
+                                          ...mapToFirestore(
+                                            {
+                                              'favsongs': FieldValue.arrayRemove(
+                                                  [rowSongsRecord.num]),
+                                            },
+                                          ),
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                Container(
+                                  // Gradient fade stroke, same as the dashboard cards.
+                                  foregroundDecoration: const GradientStroke(radius: 5.0),
+                                  child: FlutterFlowIconButton(
                                     borderRadius: 5.0,
-                                    borderWidth: 2.0,
                                     buttonSize: 35.0,
                                     fillColor: Color(0xFF0F0F0F),
                                     icon: Icon(
-                                      Icons.favorite_sharp,
+                                      Icons.queue_music,
                                       color: Color(0xFFFDC2FE),
                                       size: 15.0,
                                     ),
                                     onPressed: () async {
-                                      await FFAppState().activeSongRef!.update({
-                                        ...mapToFirestore(
-                                          {
-                                            'liked_by': FieldValue.arrayRemove(
-                                                [currentUserReference]),
-                                          },
-                                        ),
-                                      });
-
-                                      await currentUserReference!.update({
-                                        ...mapToFirestore(
-                                          {
-                                            'favsongs': FieldValue.arrayRemove(
-                                                [rowSongsRecord.num]),
-                                          },
-                                        ),
-                                      });
+                                      await showModalBottomSheet(
+                                        isScrollControlled: true,
+                                        backgroundColor: Color(0xC1000000),
+                                        enableDrag: false,
+                                        context: context,
+                                        builder: (context) {
+                                          return Padding(
+                                            padding:
+                                                MediaQuery.viewInsetsOf(context),
+                                            child: AddtoplaylistWidget(
+                                              song: rowSongsRecord.reference,
+                                            ),
+                                          );
+                                        },
+                                      ).then((value) => safeSetState(() {}));
                                     },
                                   ),
-                                FlutterFlowIconButton(
-                                  borderColor: Color(0xC2D4D2D2),
-                                  borderRadius: 5.0,
-                                  borderWidth: 2.0,
-                                  buttonSize: 35.0,
-                                  fillColor: Color(0xFF0F0F0F),
-                                  icon: Icon(
-                                    Icons.queue_music,
-                                    color: Color(0xFFFDC2FE),
-                                    size: 15.0,
-                                  ),
-                                  onPressed: () async {
-                                    await showModalBottomSheet(
-                                      isScrollControlled: true,
-                                      backgroundColor: Color(0xC1000000),
-                                      enableDrag: false,
-                                      context: context,
-                                      builder: (context) {
-                                        return Padding(
-                                          padding:
-                                              MediaQuery.viewInsetsOf(context),
-                                          child: AddtoplaylistWidget(
-                                            song: rowSongsRecord.reference,
-                                          ),
-                                        );
-                                      },
-                                    ).then((value) => safeSetState(() {}));
-                                  },
                                 ),
                               ].divide(SizedBox(width: 11.0)),
                             );

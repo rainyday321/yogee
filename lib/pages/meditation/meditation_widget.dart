@@ -339,7 +339,7 @@ class _MeditationWidgetState extends State<MeditationWidget> {
                                   children: [
                                     Padding(
                                       padding: EdgeInsetsDirectional.fromSTEB(
-                                          0.0, 0.0, 0.0, 20.0),
+                                          0.0, 0.0, 0.0, 4.0),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.max,
                                         mainAxisAlignment:
@@ -1080,7 +1080,7 @@ class _MeditationWidgetState extends State<MeditationWidget> {
                                         child: Padding(
                                           padding:
                                               EdgeInsetsDirectional.fromSTEB(
-                                                  20.0, 0.0, 10.0, 10.0),
+                                                  20.0, 0.0, 10.0, 4.0),
                                           child: Builder(
                                             builder: (context) {
                                               final categories = FFAppState()
@@ -1286,6 +1286,11 @@ class _MeditationWidgetState extends State<MeditationWidget> {
                                               crossAxisCount: 2,
                                               crossAxisSpacing: 6.0,
                                               mainAxisSpacing: 6.0,
+                                              // Cell height is width/ratio, but
+                                              // the cover image inside is a
+                                              // fixed 150x150, so a low ratio
+                                              // leaves dead space under the
+                                              // caption on wider screens.
                                               childAspectRatio: 0.76,
                                             ),
                                             primary: false,
@@ -1570,6 +1575,11 @@ class _MeditationWidgetState extends State<MeditationWidget> {
                                               crossAxisCount: 2,
                                               crossAxisSpacing: 10.0,
                                               mainAxisSpacing: 10.0,
+                                              // Cell height is width/ratio, but
+                                              // the cover image inside is a
+                                              // fixed 150x150, so a low ratio
+                                              // leaves dead space under the
+                                              // caption on wider screens.
                                               childAspectRatio: 0.76,
                                             ),
                                             primary: false,

@@ -428,9 +428,22 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                 ),
                                               );
                                             }
+                                            final page = snapshot.data!;
+                                            final hasMore = page.length >=
+                                                _model.allPostsPageSize;
+                                            // `poster` is nullable and nothing
+                                            // enforces it in Firestore. When
+                                            // the blocked list is empty this
+                                            // query is unfiltered, so such a
+                                            // post does reach here, and the
+                                            // `poster!` below would take down
+                                            // the whole feed. Drop those rows;
+                                            // page off the unfiltered count.
                                             List<PostsRecord>
-                                                listViewPostsRecordList =
-                                                snapshot.data!;
+                                                listViewPostsRecordList = page
+                                                    .where((p) =>
+                                                        p.poster != null)
+                                                    .toList();
 
                                             return ListView.separated(
                                               padding: EdgeInsets.fromLTRB(
@@ -443,12 +456,7 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                               scrollDirection: Axis.vertical,
                                               itemCount: listViewPostsRecordList
                                                       .length +
-                                                  (listViewPostsRecordList
-                                                              .length >=
-                                                          _model
-                                                              .allPostsPageSize
-                                                      ? 1
-                                                      : 0),
+                                                  (hasMore ? 1 : 0),
                                               separatorBuilder: (_, __) =>
                                                   SizedBox(height: 16.0),
                                               itemBuilder:
@@ -1097,9 +1105,26 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                           ),
                                                         );
                                                       }
+                                                      final page =
+                                                          snapshot.data!;
+                                                      final hasMore = page
+                                                              .length >=
+                                                          _model
+                                                              .followingPostsPageSize;
+                                                      // Same guard as the feed
+                                                      // above: an empty
+                                                      // following list leaves
+                                                      // this query unfiltered,
+                                                      // so a post with no
+                                                      // `poster` reaches the
+                                                      // `poster!` below.
                                                       List<PostsRecord>
                                                           listViewPostsRecordList =
-                                                          snapshot.data!;
+                                                          page
+                                                              .where((p) =>
+                                                                  p.poster !=
+                                                                  null)
+                                                              .toList();
 
                                                       return ListView.separated(
                                                         padding:
@@ -1114,12 +1139,7 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                             Axis.vertical,
                                                         itemCount: listViewPostsRecordList
                                                                 .length +
-                                                            (listViewPostsRecordList
-                                                                        .length >=
-                                                                    _model
-                                                                        .followingPostsPageSize
-                                                                ? 1
-                                                                : 0),
+                                                            (hasMore ? 1 : 0),
                                                         separatorBuilder:
                                                             (_, __) => SizedBox(
                                                                 height: 16.0),

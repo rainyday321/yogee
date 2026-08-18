@@ -57,6 +57,9 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
+    // TEMPORARY instrumentation - remove once the blank-profile bug is closed.
+    debugPrint('PROFILE build: currentUserReference=$currentUserReference '
+        'loggedIn=$loggedIn uid=${currentUser?.uid}');
 
     return GestureDetector(
       onTap: () {
@@ -76,8 +79,21 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
                 ),
               ),
               builder: (context, snapshot) {
-                // Customize what your widget looks like when it's loading.
-                if (!snapshot.hasData) {
+                // A FutureBuilder whose future REJECTS has hasData == false and
+                // hasError == true. Checking only hasData meant any failure of
+                // this one count query left the whole profile page stuck on a
+                // spinner forever, with no indication of why. The post count
+                // only decides whether the posts list below is rendered, so a
+                // failure degrades to "no posts" rather than blanking the page.
+                debugPrint('PROFILE count snapshot: state=${snapshot.connectionState} '
+                    'hasData=${snapshot.hasData} data=${snapshot.data} '
+                    'hasError=${snapshot.hasError} err=${snapshot.error}');
+                if (snapshot.hasError) {
+                  debugPrint(
+                      'myprofilepage: post count failed: ${snapshot.error}');
+                }
+                // Still genuinely loading (no data, no error yet).
+                if (!snapshot.hasData && !snapshot.hasError) {
                   return Center(
                     child: SizedBox(
                       width: 50.0,
@@ -90,7 +106,7 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
                     ),
                   );
                 }
-                int containerCount = snapshot.data!;
+                int containerCount = snapshot.data ?? 0;
 
                 return Container(
                   decoration: BoxDecoration(
@@ -1267,6 +1283,15 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
                                             limit: _model.postsPageSize,
                                           ),
                                           builder: (context, snapshot) {
+                                            // Same guard as the count above: a
+                                            // failed stream leaves hasData
+                                            // false forever, so without this
+                                            // the posts list spins on error.
+                                            if (snapshot.hasError) {
+                                              debugPrint(
+                                                  'myprofilepage: posts stream failed: ${snapshot.error}');
+                                              return SizedBox.shrink();
+                                            }
                                             // Customize what your widget looks like when it's loading.
                                             if (!snapshot.hasData) {
                                               return Center(
@@ -1286,14 +1311,24 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
                                                 ),
                                               );
                                             }
-                                            List<PostsRecord>
-                                                listViewPostsRecordList =
-                                                snapshot.data!;
-
+                                            final page = snapshot.data!;
                                             final hasMore =
-                                                listViewPostsRecordList
-                                                        .length >=
+                                                page.length >=
                                                     _model.postsPageSize;
+                                            // `poster` is nullable and nothing
+                                            // enforces it in Firestore. A post
+                                            // without one cannot render its
+                                            // author row, and the `poster!`
+                                            // below would take down the whole
+                                            // list, not just that entry. Drop
+                                            // those rows; page off the
+                                            // unfiltered count so Load More
+                                            // still appears.
+                                            List<PostsRecord>
+                                                listViewPostsRecordList = page
+                                                    .where((p) =>
+                                                        p.poster != null)
+                                                    .toList();
                                             return ListView.separated(
                                               padding: EdgeInsets.fromLTRB(
                                                 0,
@@ -1715,6 +1750,12 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
                                                                                 ),
                                                                               ),
                                                                               builder: (context, snapshot) {
+                                                                                // Comment count: on failure show 0
+                                                                                // rather than spinning inside every
+                                                                                // post row.
+                                                                                if (snapshot.hasError) {
+                                                                                  return Text('0');
+                                                                                }
                                                                                 // Customize what your widget looks like when it's loading.
                                                                                 if (!snapshot.hasData) {
                                                                                   return Center(

@@ -1705,14 +1705,20 @@ class _OthersprofileWidgetState extends State<OthersprofileWidget> {
                                                   ),
                                                 );
                                               }
-                                              List<PostsRecord>
-                                                  listViewPostsRecordList =
-                                                  snapshot.data!;
-
+                                              final page = snapshot.data!;
                                               final hasMore =
-                                                  listViewPostsRecordList
-                                                          .length >=
+                                                  page.length >=
                                                       _model.postsPageSize;
+                                              // Posts with no `poster` cannot
+                                              // render their author row and
+                                              // would crash on `poster!`
+                                              // below. Drop them; page off the
+                                              // unfiltered count.
+                                              List<PostsRecord>
+                                                  listViewPostsRecordList = page
+                                                      .where((p) =>
+                                                          p.poster != null)
+                                                      .toList();
                                               return ListView.separated(
                                                 padding: EdgeInsets.zero,
                                                 primary: false,

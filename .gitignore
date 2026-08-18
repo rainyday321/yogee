@@ -1,10 +1,59 @@
-build 
+# Dart / Flutter build output
+.dart_tool/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+devtools_options.yaml
+*.log
+
+# Note: pubspec.lock is intentionally NOT ignored.
+# This is an app, not a library - the lockfile must be committed.
+
+# IDE
+.idea/
+android/.idea/
+*.iml
+.vscode/
+
+# iOS
+ios/Flutter/ephemeral/
+ios/Pods/
+ios/.symlinks/
+**/xcuserdata/
+ios/Flutter/Generated.xcconfig
+ios/Flutter/flutter_export_environment.sh
+
+# Android
+android/.gradle/
+android/local.properties
+android/key.properties
+*.jks
+
+# Node (firebase/functions)
+node_modules/
+
+# Firebase local artifacts
+.firebase/
+*-debug.log
+firestore-debug.log
+ui-debug.log
+
+# Secrets - never commit these
+*serviceAccount*.json
+serviceAccountKey.json
+.env
+.env.*
+
+# Tooling
+graphify-out/
 .claude
 ._bmad
 ._bmad.*
-# Ignore all files in the "logs" directory
 logs/
-# Ignore all files in the "temp" directory
 temp/
-# Ignore all files in the "bmad" directory
 bmad/
+
+# OS
+.DS_Store
+Thumbs.db

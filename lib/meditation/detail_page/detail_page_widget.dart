@@ -1312,8 +1312,8 @@ class _DetailPageWidgetState extends State<DetailPageWidget> {
                               Padding(
                                 padding: EdgeInsets.all(8.0),
                                 child: FFButtonWidget(
-                                  onPressed: () {
-                                    print('Button pressed ...');
+                                  onPressed: () async {
+                                    context.safePop();
                                   },
                                   text: 'Back',
                                   icon: Icon(

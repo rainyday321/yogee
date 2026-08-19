@@ -1,5 +1,6 @@
 import '/auth/firebase_auth/auth_util.dart';
 import '/backend/backend.dart';
+import '/custom_code/loading_overlay.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -1216,7 +1217,12 @@ class _SignupWidgetState extends State<SignupWidget> {
                                     ),
                                   );
                                 } else {
-                                  GoRouter.of(context).prepareAuthEvent();
+                                  // Validate BEFORE prepareAuthEvent(): that
+                                  // call sets notifyOnAuthChange = false, and
+                                  // only an actual auth change restores it. An
+                                  // early return here used to leave the flag
+                                  // stuck false, so a later unexpected
+                                  // sign-out would not refresh the router.
                                   if (_model
                                           .signupPasswordTextController.text !=
                                       _model.signupPasswordconfirmTextController
@@ -1230,6 +1236,7 @@ class _SignupWidgetState extends State<SignupWidget> {
                                     );
                                     return;
                                   }
+                                  GoRouter.of(context).prepareAuthEvent();
 
                                   final user =
                                       await authManager.createAccountWithEmail(
@@ -1336,6 +1343,10 @@ class _SignupWidgetState extends State<SignupWidget> {
                                   shape: BoxShape.circle,
                                 ),
                                 child: FlutterFlowIconButton(
+                                  // See the matching comment in login_widget:
+                                  // this defaults to false, so the button was
+                                  // silent for the whole sign-in.
+                                  showLoadingIndicator: true,
                                   buttonSize: 40.0,
                                   icon: FaIcon(
                                     FontAwesomeIcons.google,
@@ -1345,8 +1356,14 @@ class _SignupWidgetState extends State<SignupWidget> {
                                   ),
                                   onPressed: () async {
                                     GoRouter.of(context).prepareAuthEvent();
-                                    final user = await authManager
-                                        .signInWithGoogle(context);
+                                    // See login_widget: overlay is removed
+                                    // before navigating.
+                                    final user = await withLoadingOverlay(
+                                      context,
+                                      () =>
+                                          authManager.signInWithGoogle(context),
+                                      message: 'Signing you in…',
+                                    );
                                     if (user == null) {
                                       return;
                                     }

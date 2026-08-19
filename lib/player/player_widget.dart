@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'player_model.dart';
+import '/custom_code/net_image.dart';
 export 'player_model.dart';
 
 class PlayerWidget extends StatefulWidget {
@@ -162,7 +163,7 @@ class _PlayerWidgetState extends State<PlayerWidget> {
                                         ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(8.0),
-                                          child: Image.network(
+                                          child: NetImage(
                                             valueOrDefault<String>(
                                               listViewSongsRecord
                                                   .songCoverImage,

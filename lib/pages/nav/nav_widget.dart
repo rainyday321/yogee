@@ -13,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:provider/provider.dart';
 import 'nav_model.dart';
+import '/custom_code/net_image.dart';
 export 'nav_model.dart';
 
 /// Figma: accent applied to the active tab's icon and label.
@@ -181,7 +182,7 @@ class _NavWidgetState extends State<NavWidget> {
                                         ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(8.0),
-                                          child: Image.network(
+                                          child: NetImage(
                                             valueOrDefault<String>(
                                               containerSongsRecord
                                                   .songCoverImage,

@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'settings_model.dart';
+import '/custom_code/net_image.dart';
 export 'settings_model.dart';
 
 class SettingsWidget extends StatefulWidget {
@@ -151,7 +152,7 @@ class _SettingsWidgetState extends State<SettingsWidget> {
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
                                         ),
-                                        child: Image.network(
+                                        child: NetImage(
                                           valueOrDefault<String>(
                                             currentUserPhoto,
                                             'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',

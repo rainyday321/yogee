@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'following_model.dart';
+import '/custom_code/net_image.dart';
 export 'following_model.dart';
 
 class FollowingWidget extends StatefulWidget {
@@ -195,7 +196,7 @@ class _FollowingWidgetState extends State<FollowingWidget> {
                                               decoration: BoxDecoration(
                                                 shape: BoxShape.circle,
                                               ),
-                                              child: Image.network(
+                                              child: NetImage(
                                                 valueOrDefault<String>(
                                                   containerUsersRecord.photoUrl,
                                                   'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',

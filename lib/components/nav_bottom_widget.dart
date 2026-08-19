@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'nav_bottom_model.dart';
+import '/custom_code/net_image.dart';
 export 'nav_bottom_model.dart';
 
 class NavBottomWidget extends StatefulWidget {
@@ -125,7 +126,7 @@ class _NavBottomWidgetState extends State<NavBottomWidget> {
                                         ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(10.0),
-                                          child: Image.network(
+                                          child: NetImage(
                                             'https://picsum.photos/seed/879/600',
                                             width: 60.0,
                                             height: 60.0,

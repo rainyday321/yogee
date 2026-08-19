@@ -15,6 +15,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'detail_page_model.dart';
+import '/custom_code/net_image.dart';
 export 'detail_page_model.dart';
 
 class DetailPageWidget extends StatefulWidget {
@@ -95,7 +96,7 @@ class _DetailPageWidgetState extends State<DetailPageWidget> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
-                            child: Image.network(
+                            child: NetImage(
                               valueOrDefault<String>(
                                 stackAlbumsRecord.coverImage,
                                 'https://firebasestorage.googleapis.com/v0/b/yoogeeapp.firebasestorage.app/o/Square.jpeg?alt=media&token=6bb95a92-ae29-4638-9326-8ad36bcfaff0',
@@ -710,7 +711,7 @@ class _DetailPageWidgetState extends State<DetailPageWidget> {
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(0.0),
-                                                        child: Image.network(
+                                                        child: NetImage(
                                                           valueOrDefault<
                                                               String>(
                                                             containerVarItem
@@ -1047,7 +1048,7 @@ class _DetailPageWidgetState extends State<DetailPageWidget> {
                                                       decoration: BoxDecoration(
                                                         shape: BoxShape.circle,
                                                       ),
-                                                      child: Image.network(
+                                                      child: NetImage(
                                                         valueOrDefault<String>(
                                                           listViewArtistsRecord
                                                               .image,

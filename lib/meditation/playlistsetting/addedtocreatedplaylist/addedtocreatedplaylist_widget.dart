@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'addedtocreatedplaylist_model.dart';
+import '/custom_code/net_image.dart';
 export 'addedtocreatedplaylist_model.dart';
 
 class AddedtocreatedplaylistWidget extends StatefulWidget {
@@ -268,7 +269,7 @@ class _AddedtocreatedplaylistWidgetState
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(0.0),
-                          child: Image.network(
+                          child: NetImage(
                             rowSongsRecord.songCoverImage,
                             width: 70.0,
                             height: 70.0,

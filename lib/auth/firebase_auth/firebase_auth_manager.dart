@@ -1,8 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import '../auth_manager.dart';
 import '../base_auth_user_provider.dart';
 import '../../flutter_flow/flutter_flow_util.dart';
@@ -122,7 +124,7 @@ class FirebaseAuthManager extends AuthManager
       if (e.code == 'requires-recent-login') {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: ${e.message!}')),
+          SnackBar(content: Text(authErrorMessage(e) ?? '')),
         );
       }
     }
@@ -138,7 +140,7 @@ class FirebaseAuthManager extends AuthManager
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.message!}')),
+        SnackBar(content: Text(authErrorMessage(e) ?? '')),
       );
       return null;
     }
@@ -209,7 +211,7 @@ class FirebaseAuthManager extends AuthManager
       } else if (phoneAuthManager.phoneAuthError != null) {
         final e = phoneAuthManager.phoneAuthError!;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Error: ${e.message!}'),
+          content: Text(authErrorMessage(e) ?? ''),
         ));
         phoneAuthManager.update(() => phoneAuthManager.phoneAuthError = null);
       }
@@ -310,22 +312,109 @@ class FirebaseAuthManager extends AuthManager
       if (userCredential?.user != null) {
         await maybeCreateUser(userCredential!.user!);
       }
-      return userCredential == null
-          ? null
-          : YogeeFirebaseUser.fromUserCredential(userCredential);
-    } on FirebaseAuthException catch (e) {
-      final errorMsg = switch (e.code) {
-        'email-already-in-use' =>
-          'Error: The email is already in use by a different account',
-        'INVALID_LOGIN_CREDENTIALS' =>
-          'Error: The supplied auth credential is incorrect, malformed or has expired',
-        _ => 'Error: ${e.message!}',
-      };
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(errorMsg)),
-      );
+      if (userCredential == null) {
+        // The user backed out (e.g. dismissed the Google account picker). Not
+        // an error, but no auth event is coming either.
+        _abandonAuthEvent();
+        return null;
+      }
+      return YogeeFirebaseUser.fromUserCredential(userCredential);
+    } catch (e, stackTrace) {
+      // Deliberately catches everything, not just FirebaseAuthException. Google
+      // sign-in reports Play Services failures as PlatformException, so a
+      // narrower catch let them escape as unhandled async errors: no snackbar,
+      // no crash, nothing on screen. That was the "tap the button and nothing
+      // happens" bug.
+      _abandonAuthEvent();
+
+      if (e is! FirebaseAuthException && e is! PlatformException) {
+        // Not an auth failure at all, so it is a bug rather than something the
+        // user did. Record it -- an exception that reaches nobody is exactly
+        // what made this class of failure invisible.
+        debugPrint('Unexpected $authProvider sign-in error: $e');
+        if (!kIsWeb) {
+          FirebaseCrashlytics.instance
+              .recordError(e, stackTrace, reason: '$authProvider sign-in');
+        }
+      }
+
+      final errorMsg = authErrorMessage(e);
+      if (errorMsg != null && context.mounted) {
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(errorMsg)),
+        );
+      }
       return null;
     }
+  }
+
+  /// Every sign-in call site calls `prepareAuthEvent()` first, which sets
+  /// `notifyOnAuthChange = false` so the router does not refresh mid-sign-in.
+  /// Only `AppStateNotifier.update()` restores it, and that runs only when an
+  /// auth change actually arrives. When an attempt ends without one -- failure
+  /// or cancellation -- the flag would stay false, and the next unexpected
+  /// sign-out would not refresh the router. So restore it here.
+  void _abandonAuthEvent() =>
+      AppStateNotifier.instance.updateNotifyOnAuthChange(true);
+
+  /// Copy for a failed sign-in, or null when the user simply backed out and
+  /// there is nothing worth telling them.
+  @visibleForTesting
+  static String? authErrorMessage(Object error) {
+    if (error is FirebaseAuthException) {
+      return switch (error.code) {
+        'popup-closed-by-user' || 'cancelled-popup-request' => null,
+        'email-already-in-use' =>
+          'That email is already in use by a different account.',
+        'INVALID_LOGIN_CREDENTIALS' ||
+        'invalid-credential' ||
+        'wrong-password' ||
+        'user-not-found' =>
+          'That email and password do not match an account.',
+        'invalid-email' => 'That email address is not valid.',
+        'user-disabled' => 'This account has been disabled.',
+        'weak-password' => 'Please choose a longer, less common password.',
+        'network-request-failed' =>
+          'No connection. Check your network and try again.',
+        'too-many-requests' =>
+          'Too many attempts. Wait a moment and try again.',
+        'account-exists-with-different-credential' =>
+          'You already have an account with this email. Sign in the way you did the first time.',
+        'popup-blocked' =>
+          'Your browser blocked the sign-in popup. Allow popups and try again.',
+        'operation-not-allowed' =>
+          'That sign-in method is not enabled for this app.',
+        'requires-recent-login' =>
+          'Please sign in again before making this change.',
+        // Never force-unwrap `message`. It is nullable, and unwrapping it threw
+        // a second exception from inside this handler, which destroyed the
+        // original error and left the user staring at an unchanged screen.
+        _ => error.message ?? 'Something went wrong. Please try again.',
+      };
+    }
+    if (error is PlatformException) {
+      // google_sign_in surfaces Play Services failures here.
+      if (error.code == 'sign_in_canceled') {
+        return null;
+      }
+      if (error.code == 'network_error') {
+        return 'No connection. Check your network and try again.';
+      }
+      final details = error.message ?? '';
+      if (details.contains('12501')) {
+        return null; // account picker dismissed
+      }
+      if (details.contains('ApiException: 10')) {
+        // DEVELOPER_ERROR: this build's signing SHA-1 is not registered on the
+        // Firebase project it points at. See docs/auth-signin-plan.md.
+        return 'Google sign-in is not set up for this build of the app.';
+      }
+      if (details.contains('12500')) {
+        return 'Google sign-in could not complete. Please try again.';
+      }
+      return error.message ?? 'Something went wrong. Please try again.';
+    }
+    return 'Something went wrong. Please try again.';
   }
 }

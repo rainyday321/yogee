@@ -10,14 +10,13 @@ import '/settings/notificationssettings/notificationssettings_widget.dart';
 import '/settings/usernameset/usernameset_widget.dart';
 import 'dart:ui';
 import '/custom_code/card_stroke.dart';
+import '/custom_code/net_image.dart';
 import '/custom_code/actions/index.dart' as actions;
 import '/flutter_flow/custom_functions.dart' as functions;
 import '/index.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:octo_image/octo_image.dart';
 import 'package:provider/provider.dart';
 import 'dashboard_model.dart';
 export 'dashboard_model.dart';
@@ -309,11 +308,18 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
                                             ),
-                                            child: Image.network(
+                                            child: NetImage(
                                               valueOrDefault<String>(
                                                 currentUserPhoto,
                                                 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
                                               ),
+                                              // Matches the 68x68 Container
+                                              // above. Stated explicitly so the
+                                              // decode cap is derived from the
+                                              // real size, not the fallback
+                                              // ceiling.
+                                              width: 68.0,
+                                              height: 68.0,
                                               fit: BoxFit.cover,
                                             ),
                                           ),
@@ -1274,7 +1280,7 @@ class _DashboardWidgetState extends State<DashboardWidget> {
                                                         borderRadius:
                                                             BorderRadius
                                                                 .circular(5.0),
-                                                        child: Image.network(
+                                                        child: NetImage(
                                                           valueOrDefault<
                                                               String>(
                                                             listViewAlbumsRecord

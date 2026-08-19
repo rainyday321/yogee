@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'playlists_model.dart';
+import '/custom_code/net_image.dart';
 export 'playlists_model.dart';
 
 class PlaylistsWidget extends StatefulWidget {
@@ -614,7 +615,7 @@ class _PlaylistsWidgetState extends State<PlaylistsWidget> {
                                                     borderRadius:
                                                         BorderRadius.circular(
                                                             0.0),
-                                                    child: Image.network(
+                                                    child: NetImage(
                                                       valueOrDefault<String>(
                                                         listViewSongsRecord
                                                             .songCoverImage,

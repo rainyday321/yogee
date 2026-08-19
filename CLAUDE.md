@@ -131,7 +131,7 @@ Generated page widgets are deeply nested with very long `build()` methods (`dash
 | Audio | `just_audio`, `audio_service`, `assets_audio_player` |
 | State | `provider` |
 | Navigation | `go_router` |
-| Firebase | `cloud_firestore`, `firebase_auth`, `firebase_storage`, `firebase_crashlytics` |
+| Firebase | `cloud_firestore`, `firebase_auth`, `firebase_storage`, `fire base_crashlytics` |
 | Payments | `flutter_stripe`, `braintree`, `razorpay_flutter` |
 | Images | `cached_network_image` (present but used in only one file — see `todo-fix.txt` §2) |
 | Animations | `flutter_animate`, Rive |

@@ -14,6 +14,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'messages_model.dart';
+import '/custom_code/net_image.dart';
 export 'messages_model.dart';
 
 class MessagesWidget extends StatefulWidget {
@@ -388,7 +389,7 @@ class _MessagesWidgetState extends State<MessagesWidget> {
                                                                 ),
                                                               ),
                                                               child:
-                                                                  Image.network(
+                                                                  NetImage(
                                                                 valueOrDefault<
                                                                     String>(
                                                                   containerUsersRecord

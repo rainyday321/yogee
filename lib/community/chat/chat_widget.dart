@@ -17,6 +17,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'chat_model.dart';
+import '/custom_code/net_image.dart';
 export 'chat_model.dart';
 
 /// Figma: white -> pink sweep used on the send glyph and the header name.
@@ -231,7 +232,7 @@ class _ChatWidgetState extends State<ChatWidget> {
                                           width: 1.4,
                                         ),
                                       ),
-                                      child: Image.network(
+                                      child: NetImage(
                                         valueOrDefault<String>(
                                           containerUsersRecord.photoUrl,
                                           'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
@@ -401,7 +402,7 @@ class _ChatWidgetState extends State<ChatWidget> {
                                           ClipRRect(
                                             borderRadius:
                                                 BorderRadius.circular(20.0),
-                                            child: Image.network(
+                                            child: NetImage(
                                               listViewChatMessagesRecord.image,
                                               width: 204.0,
                                               height: 112.0,
@@ -522,7 +523,7 @@ class _ChatWidgetState extends State<ChatWidget> {
                                         ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(20.0),
-                                          child: Image.network(
+                                          child: NetImage(
                                             listViewChatMessagesRecord.image,
                                             width: 204.0,
                                             height: 112.0,
@@ -729,7 +730,7 @@ class _ChatWidgetState extends State<ChatWidget> {
                                         child: ClipRRect(
                                           borderRadius:
                                               BorderRadius.circular(10.0),
-                                          child: Image.network(
+                                          child: NetImage(
                                             _model
                                                 .uploadedFileUrl_uploadDataUda,
                                             width: 52.0,

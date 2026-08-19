@@ -15,6 +15,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'notifications_model.dart';
+import '/custom_code/net_image.dart';
 export 'notifications_model.dart';
 
 class NotificationsWidget extends StatefulWidget {
@@ -458,8 +459,7 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
                                                                   shape: BoxShape
                                                                       .circle,
                                                                 ),
-                                                                child: Image
-                                                                    .network(
+                                                                child: NetImage(
                                                                   valueOrDefault<
                                                                       String>(
                                                                     rowUsersRecord
@@ -741,8 +741,7 @@ class _NotificationsWidgetState extends State<NotificationsWidget> {
                                                                   shape: BoxShape
                                                                       .circle,
                                                                 ),
-                                                                child: Image
-                                                                    .network(
+                                                                child: NetImage(
                                                                   valueOrDefault<
                                                                       String>(
                                                                     rowUsersRecord

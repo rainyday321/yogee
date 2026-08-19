@@ -18,6 +18,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'othersprofile_model.dart';
+import '/custom_code/net_image.dart';
 export 'othersprofile_model.dart';
 
 class OthersprofileWidget extends StatefulWidget {
@@ -344,8 +345,7 @@ class _OthersprofileWidgetState extends State<OthersprofileWidget> {
                                                                     BorderRadius
                                                                         .circular(
                                                                             64.0),
-                                                                child: Image
-                                                                    .network(
+                                                                child: NetImage(
                                                                   valueOrDefault<
                                                                       String>(
                                                                     containerUsersRecord
@@ -1792,7 +1792,7 @@ class _OthersprofileWidgetState extends State<OthersprofileWidget> {
                                                                     .circle,
                                                               ),
                                                               child:
-                                                                  Image.network(
+                                                                  NetImage(
                                                                 valueOrDefault<
                                                                     String>(
                                                                   containerUsersRecord
@@ -1947,8 +1947,7 @@ class _OthersprofileWidgetState extends State<OthersprofileWidget> {
                                                                           ClipRRect(
                                                                         borderRadius:
                                                                             BorderRadius.circular(20.0),
-                                                                        child: Image
-                                                                            .network(
+                                                                        child: NetImage(
                                                                           listViewPostsRecord
                                                                               .image,
                                                                           width:

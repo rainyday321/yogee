@@ -1,4 +1,5 @@
 import '/auth/firebase_auth/auth_util.dart';
+import '/custom_code/loading_overlay.dart';
 import '/flutter_flow/flutter_flow_icon_button.dart';
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -618,6 +619,11 @@ class _LoginWidgetState extends State<LoginWidget> {
                                 shape: BoxShape.circle,
                               ),
                               child: FlutterFlowIconButton(
+                                // Defaults to false on FlutterFlowIconButton
+                                // (unlike FFButtonWidget, which defaults true),
+                                // so without this the Google button gives no
+                                // feedback at all during a multi-second sign-in.
+                                showLoadingIndicator: true,
                                 buttonSize: 40.0,
                                 icon: FaIcon(
                                   FontAwesomeIcons.google,
@@ -627,8 +633,13 @@ class _LoginWidgetState extends State<LoginWidget> {
                                 ),
                                 onPressed: () async {
                                   GoRouter.of(context).prepareAuthEvent();
-                                  final user = await authManager
-                                      .signInWithGoogle(context);
+                                  // The overlay is removed before we navigate,
+                                  // so it can never outlive this page.
+                                  final user = await withLoadingOverlay(
+                                    context,
+                                    () => authManager.signInWithGoogle(context),
+                                    message: 'Signing you in…',
+                                  );
                                   if (user == null) {
                                     return;
                                   }

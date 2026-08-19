@@ -45,9 +45,18 @@ serviceAccountKey.json
 .env
 .env.*
 
+# Deliberately NOT ignoring google-services.json / GoogleService-Info.plist.
+# They are client identifiers that ship inside every binary, not secrets, and
+# the build needs them. android/app/src/debug/google-services.json was lost
+# because it was never tracked, which is why debug builds now hit production.
+# Track them so git can restore them. The real exposure is firestore.rules.
+*.json.bak
+
 # Tooling
 graphify-out/
-.claude
+# Not the whole .claude directory: .claude/skills/ is shared tooling and belongs
+# in the repo. Only the per-machine permission allowlist stays out.
+.claude/settings.local.json
 ._bmad
 ._bmad.*
 logs/

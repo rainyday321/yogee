@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'library_model.dart';
+import '/custom_code/net_image.dart';
 export 'library_model.dart';
 
 class LibraryWidget extends StatefulWidget {
@@ -837,8 +838,7 @@ class _LibraryWidgetState extends State<LibraryWidget>
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               5.0),
-                                                                      child: Image
-                                                                          .network(
+                                                                      child: NetImage(
                                                                         listViewSongsRecord
                                                                             .songCoverImage,
                                                                         width:
@@ -1184,8 +1184,7 @@ class _LibraryWidgetState extends State<LibraryWidget>
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               5.0),
-                                                                      child: Image
-                                                                          .network(
+                                                                      child: NetImage(
                                                                         listViewDownloadsRecord
                                                                             .coverimage,
                                                                         width:

@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'replies_model.dart';
+import '/custom_code/net_image.dart';
 export 'replies_model.dart';
 
 class RepliesWidget extends StatefulWidget {
@@ -258,7 +259,7 @@ class _RepliesWidgetState extends State<RepliesWidget> {
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
                                             ),
-                                            child: Image.network(
+                                            child: NetImage(
                                               valueOrDefault<String>(
                                                 rowUsersRecord.photoUrl,
                                                 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
@@ -429,7 +430,7 @@ class _RepliesWidgetState extends State<RepliesWidget> {
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               14.0),
-                                                      child: Image.network(
+                                                      child: NetImage(
                                                         stackPostsRecord.image,
                                                         width: 220.0,
                                                         height: 159.0,
@@ -746,7 +747,7 @@ class _RepliesWidgetState extends State<RepliesWidget> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Image.network(
+                                  child: NetImage(
                                     valueOrDefault<String>(
                                       currentUserPhoto,
                                       'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
@@ -1058,7 +1059,7 @@ class _RepliesWidgetState extends State<RepliesWidget> {
                                                           shape:
                                                               BoxShape.circle,
                                                         ),
-                                                        child: Image.network(
+                                                        child: NetImage(
                                                           valueOrDefault<
                                                               String>(
                                                             rowUsersRecord

@@ -1,281 +1,69 @@
 TODO / FIX LIST
 
-  1. Push notifications - not implemented          (plan below)
-  2. Images load slowly - measured, cause found    (plan below)
+  1. Push notifications - not implemented          (docs/fcm-push-plan.md)
+  2. Images load slowly - measured, cause found    (docs/image-loading-plan.md)
   3. Firebase Storage has no CORS config           (blocked: needs prod access)
-  4. Google sign-in fails silently, no loading UI  (plan below)
+  4. Sign-in fails silently, no loading UI         (docs/auth-signin-plan.md)
 
 
 ================================================================================
-1. PUSH NOTIFICATIONS - IMPLEMENTATION PLAN
+1. PUSH NOTIFICATIONS - NOT IMPLEMENTED
 ================================================================================
 
-GOAL
-Deliver a push notification to a user's phone when someone likes or replies to
-their post, or follows them - including when the app is closed - and open the
-right screen when the notification is tapped.
+Full plan: docs/fcm-push-plan.md
 
+Decision: FCM, not OneSignal. @onesignal/node-onesignal is in
+firebase/functions/package.json but nothing in lib/ has ever imported it.
 
-WHERE WE ARE NOW
-Notifications already exist, but only inside the app:
+Notifications exist only as Firestore documents rendered in-app. Nothing leaves
+the device; pubspec.yaml has no push package. Delivery is added on top of the
+documents already being written - no create site has to change for push to
+work.
 
-  written by   community_widget.dart, replies_widget.dart,
-               othersprofile_widget.dart, addfriend_widget.dart
-               (all via NotificationsRecord.collection.doc().set(...))
-  read by      notifications_widget.dart, plus the unread bell badge on
-               myprofilepage_widget.dart and community_widget.dart
-  schema       lib/backend/schema/notifications_record.dart
-               fields: isread, ispost, is_like, postref, madeby, madeto,
-                       timestamp
+Four things in that document are worth doing whether or not push ever ships:
 
-Nothing leaves the device. pubspec.yaml has no push packages at all. This plan
-adds delivery on top of the Firestore records that are already being created -
-the write sites do not change.
+  - firestore.rules:4-9  users is `allow read: if true` AND
+    `allow write: if true`, so device tokens must not be stored on the user
+    document. Use a users/{uid}/fcm_tokens/{token} subcollection.
+  - firestore.rules:89-91  `allow create: if true` on notifications turns into
+    a "push any user" endpoint the moment a function delivers them.
+  - othersprofile_widget.dart:2014 has no self-notify guard, and the guard at
+    replies_widget.dart:900 checks a different reference than the recipient.
+  - functions/package.json points serve/logs/shell at -P yoogeeapp, which is
+    PRODUCTION.
 
-
-DECIDE THESE THREE THINGS BEFORE WRITING CODE
-
-1. OneSignal or FCM - pick one.
-   firebase/functions/package.json still depends on @onesignal/node-onesignal,
-   and CLAUDE.md names OneSignal as the push provider, but nothing in lib/
-   imports it. This plan is FCM. If FCM wins, drop the OneSignal dependency and
-   correct CLAUDE.md in the same change.
-
-2. Add an explicit `type` field to notifications.
-   Right now the kind of event is inferred from two booleans, and a follow is
-   encoded as BOTH of them false (addfriend_widget.dart:158):
-
-       like      ispost=true   is_like=true
-       reply     ispost=true   is_like=false
-       follow    ispost=false  is_like=false
-
-   The Cloud Function has to reverse-engineer notification copy from that. A
-   `type` string ('like' | 'reply' | 'follow') makes step 7 trivial and stops
-   the next event kind from needing a third boolean.
-
-3. Tighten the notifications security rule.
-   firestore.rules currently has `allow create: if true` on notifications, so
-   any unauthenticated client can forge one. That is survivable while they only
-   render in-app. Once a Cloud Function turns every new document into a push,
-   it becomes an open "send a push to any user" endpoint. Require:
-
-       allow create: if request.auth != null
-         && request.resource.data.madeby ==
-            /databases/$(database)/documents/users/$(request.auth.uid);
-
-
-STEP 1 - CONSOLE SETUP (no code)
-  - Enable the Firebase Cloud Messaging API on the Google Cloud project.
-  - iOS: create an APNs auth key in the Apple Developer portal and upload it
-    under Firebase -> Project settings -> Cloud Messaging.
-  Skip this and iOS push fails silently: no error, no delivery.
-
-STEP 2 - PACKAGES
-  firebase_messaging            receives messages
-  flutter_local_notifications   draws the banner
-
-  Both are needed. FCM only draws its own banner when the app is backgrounded
-  or killed. A message arriving while the app is in the foreground is delivered
-  as data with no UI, so it has to be rendered manually.
-
-STEP 3 - ANDROID CONFIG
-  - POST_NOTIFICATIONS permission (required from Android 13 / API 33).
-  - A notification channel (required from Android 8 / API 26). Without one the
-    OS discards the notification and reports nothing.
-  - Tap handler so a notification opens the app at the right route.
-
-STEP 4 - IOS CONFIG
-  - Xcode: enable the Push Notifications capability and the Background Modes ->
-    Remote notifications option.
-  - Call registerForRemoteNotifications on startup.
-
-STEP 5 - STORE DEVICE TOKENS
-  Add an `fcm_tokens` list field to the users collection. A list, not a single
-  string: one account can be signed in on several devices, and a push should
-  reach all of them.
-
-  Add it through FlutterFlow's schema editor, NOT by hand-editing
-  lib/backend/schema/users_record.dart - that file is generated and a manual
-  edit is lost on the next export.
-
-STEP 6 - CUSTOM ACTION (lib/custom_code/actions/)
-  One action that:
-    - requests notification permission
-    - reads the FCM token and writes it into the user's fcm_tokens
-    - subscribes to onTokenRefresh and writes the new token too
-    - handles the notification-tap payload and navigates to the right screen
-
-  The refresh listener is not optional. Tokens rotate on reinstall, restore,
-  and occasionally on their own; a stale token simply stops delivering, with no
-  error anywhere.
-
-STEP 7 - CLOUD FUNCTION (firebase/functions/index.js)
-  Trigger on document creation:
-
-      exports.onNotificationCreated = functions.firestore
-          .document("notifications/{id}")
-          .onCreate(async (snap, context) => { ... });
-
-  (Same v1 API shape as the existing onPostDeleted in that file.)
-
-  It should:
-    - read `madeto`, load that user document, take its fcm_tokens
-    - load the `madeby` user document for a display name - the notification
-      record does not denormalise one, so there is no name in the payload
-    - build the copy ("Sara liked your post")
-    - send with sendEachForMulticast
-    - inspect the per-token responses and arrayRemove every token that comes
-      back messaging/registration-token-not-registered
-
-  That last cleanup is what stops fcm_tokens growing forever with dead devices.
-
-
-GOTCHAS
-  - pubspec.yaml is generated by FlutterFlow. The two dependency lines from
-    step 2 are wiped whenever the project is re-exported. Either add them on
-    the FlutterFlow side, or re-add them after every export.
-  - iOS shows the permission prompt exactly once, ever. Do not ask on app
-    launch - wait until the user has engaged with a feature that justifies it,
-    or a single early decline permanently kills push for that install.
-
+Note for anyone working from older copies of this file: the ispost/is_like
+encoding has FOUR states, not the three previously listed here. ispost=false
+is not "follow" - false/true is a comment like. Table in the plan.
 
 ================================================================================
 2. IMAGES LOAD SLOWLY
 ================================================================================
 
-SYMPTOM
-Images take a long time to appear, and keep reloading.
+Full plan: docs/image-loading-plan.md
 
+Root cause is the source assets, not the code: ~33 MB of PNG album covers on
+production (one is 12.6 MB), five of which the dashboard carousel fetches to
+draw at 90x90. Re-encoding them is worth 50-100x and needs no code - but it
+needs production Storage access.
 
-ROOT CAUSE - THE SOURCE ASSETS ARE ENORMOUS
-Measured against production (yoogeeapp) on 2026-08-18, albums collection:
+The code makes it worse in three ways:
+  - 40 Image.network sites vs 2 CachedNetworkImage, so nothing caches to disk
+    and every cold start re-downloads everything.
+  - cacheWidth / memCacheWidth appear ZERO times, so every image decodes at
+    full resolution regardless of the 90x90 box it lands in.
+  - Flutter's in-memory cache holds DECODED bitmaps, so a few large photos
+    evict each other mid-scroll.
 
-    Dark to Light            12,608 KB   image/png
-    Big Budda - Part 1        7,080 KB   image/png
-    Tuscany, Italy            3,899 KB   image/png
-    Ko Mak living hammock     3,627 KB   image/png
-    Buzzas resort             2,997 KB   image/png
-    Koh Yai Yao jungle        1,945 KB   image/jpeg
-    Riparbella, Tuscany       1,621 KB   application/octet-stream
+Fix is one wrapper widget in lib/custom_code/, not 40 hand-edits - the decode
+cap must be width x devicePixelRatio, which needs a BuildContext and so cannot
+be a literal at each call site.
 
-~33 MB across seven albums. The dashboard carousel fetches five of them to
-draw at 90x90 (dashboard_widget.dart:1277).
-
-These are photographs stored as PNG - a lossless format meant for flat-colour
-graphics. As WebP or JPEG at display resolution they would be roughly 20-50 KB
-each. One has no image content-type at all (application/octet-stream). A CMS
-filename seen earlier ("Screenshot 2024-09-19 at 13.10.41 Copy.png") suggests
-raw screenshots are being uploaded unprocessed.
-
-
-FOUR COMPOUNDING PROBLEMS
-
-  a. Unoptimised source assets (above). Fixing this is worth 50-100x and needs
-     no code - but it needs production Storage access.
-
-  b. Nothing is cached to disk. 40 Image.network call sites against 2
-     CachedNetworkImage, even though cached_network_image 3.4.1 is already a
-     dependency (used only in meditation_widget.dart:1432 and :1716).
-     Image.network uses Flutter's in-memory ImageCache only, which dies with
-     the process, so every cold start re-downloads all 33 MB.
-
-  c. The in-memory cache thrashes within a session. Flutter's default
-     ImageCache holds 100 MB of DECODED bitmaps. Decoded size is
-     width x height x 4 bytes and is unrelated to file size, so a few large
-     photos evict each other and get re-downloaded mid-scroll.
-
-  d. No downscaling at decode time. cacheWidth / cacheHeight appear ZERO times
-     in the codebase. Every image is decoded at full resolution and then scaled
-     down for painting, so the CPU and memory cost is paid in full regardless
-     of the 90x90 box it lands in.
-
-  Minor: dashboard_widget.dart imports flutter_blurhash (:18) and octo_image
-  (:20) and uses neither - an abandoned progressive-placeholder attempt.
-
-
-CALL-SITE SURVEY (all 40 Image.network sites)
-    27  have a numeric width
-    12  have no width at all
-     1  is double.infinity (detail_page_widget.dart:98, the full-bleed hero)
-     3  have any error handling - all in music_player_widget.dart
-    37  have none, so a bad URL renders a red error box
-
-  Display widths used: 52, 60, 65, 70, 80, 90, 100, 200, 204, 220, 230, 250,
-  260. Nothing needs an image wider than 260 logical px except the one hero.
-
-
-PROPOSED FIX - ONE WRAPPER WIDGET, NOT 40 HAND-EDITS
-Add a small widget in lib/custom_code/ (same placement as card_stroke.dart,
-which FlutterFlow leaves alone). It takes the four arguments the call sites
-already pass, so each site is a one-word rename:
-
-    Image.network(url, width: 90, height: 90, fit: BoxFit.cover)
-      ->  NetImage(url, width: 90, height: 90, fit: BoxFit.cover)
-
-Internally it wraps CachedNetworkImage and derives the cache caps itself.
-
-  THE DPR TRAP - this is why it must be a wrapper.
-  memCacheWidth is in PHYSICAL pixels; `width:` is in LOGICAL pixels. Writing
-  `memCacheWidth: 90` beside `width: 90` on a 3x phone decodes at one third of
-  the needed resolution and every thumbnail goes visibly soft. The cap must be
-  width x MediaQuery.devicePixelRatioOf(context), which needs a BuildContext
-  and therefore cannot be a literal at each site. One wrapper computes it
-  correctly once; 40 inline literals would be 40 chances to get it wrong.
-
-  Pass the same value to maxWidthDiskCache so the stored file is small too.
-
-  THE 12 UNSIZED SITES
-  No static width means no derivable cap. Either use a LayoutBuilder (exact,
-  costs a layout pass) or a fixed ceiling when width is null. Recommend the
-  ceiling at ~1080 physical px: one branch instead of a wrapper-wide layout
-  pass, and still far below a 12 MB source. The real full-bleed hero at
-  detail_page_widget.dart:98 wants the larger budget anyway.
-
-  PLACEHOLDER AND ERROR
-  CachedNetworkImage requires both. Use a flat neutral-fill box for each, NOT
-  a spinner - a spinner in a 90x90 tile reads as broken, and this codebase
-  already has a history of spinners that never resolve (profile page, New
-  Meditations carousel). Side benefit: 37 sites gain error handling they do
-  not currently have.
-
-
-ROLLOUT ORDER (worst thrash first, so it can stop early if that is enough)
-  1. dashboard_widget.dart:1277        90x90 carousel, five multi-MB albums
-  2. meditation_widget.dart:1432,:1716 already cached, just missing the caps
-  3. feed and list images              community_widget.dart:1272,:1381,
-                                       replies, playlists, next_widget,
-                                       play_list
-  4. avatars                           52-90px, many per screen
-  5. one-offs and settings screens
-
-
-WHAT THIS FIXES AND WHAT IT DOES NOT
-memCacheWidth caps DECODING, not DOWNLOADING. The 12.6 MB PNG still crosses
-the wire in full on first view.
-
-                          before                        after
-  first load, cold        33 MB down, full-res decode   33 MB down, small decode
-  second load, session    often re-downloaded           from memory
-  after app restart       re-downloads everything       from disk
-  memory / jank           large bitmaps evicting        flat
-  web                     broken by CORS                still broken by CORS
-
-Scrolling gets smooth and restarts get fast, but the first view of a 12 MB
-cover is still slow. Only re-encoding the source assets fixes transfer.
-
-Do NOT raise the global ImageCache limit in main.dart. With decode capped, the
-default 100 MB stops being the constraint; raising it papers over the cause.
-
-
-RISKS
-  - CachedNetworkImage has no loadingBuilder / frameBuilder. The three sites in
-    music_player_widget.dart use errorBuilder and are hand-written custom code
-    - leave those alone rather than translate them.
-  - Sites wrapped in Visibility(visible: isValidUrl(...)) keep that guard; it
-    is orthogonal.
-  - If the FlutterFlow project is ever re-exported, the 37 page-file renames
-    revert. The wrapper in lib/custom_code/ survives.
-
+Note for anyone working from older copies of this file:
+  - error handling: 4 sites in TWO files (music_player_widget.dart:189,:268 and
+    community_widget.dart:599,:768), not "3, all in music_player_widget".
+  - the dashboard has two Image.network sites, :312 and :1277, not just :1277.
+  - the 27-sized / 12-unsized split is unverified; recount by hand.
 
 ================================================================================
 3. FIREBASE STORAGE HAS NO CORS CONFIG
@@ -306,102 +94,34 @@ Until then: test images on Android/iOS, or point web at the dev project
 
 
 ================================================================================
-4. GOOGLE SIGN-IN FAILS SILENTLY, NO LOADING UI, RAW ERROR MESSAGES
+4. SIGN-IN FAILS SILENTLY, NO LOADING UI, RAW ERROR MESSAGES
 ================================================================================
 
-SYMPTOMS
-  a. Google sign-in "sometimes doesn't work" - tap the button, nothing happens.
-  b. No loading indicator while it is working. The screen looks frozen.
-  c. When an error does surface, it is raw Firebase text, not user-friendly.
+Full plan: docs/auth-signin-plan.md
 
+Not Google-only. All six providers (Email, Google, Apple, GitHub, JWT,
+Anonymous) route through _signInOrCreateAccount in
+lib/auth/firebase_auth/firebase_auth_manager.dart:303, so they share one
+try/catch and all the same defects.
 
-ROOT CAUSE (a) - THE WRONG EXCEPTION TYPE IS CAUGHT
-lib/auth/firebase_auth/firebase_auth_manager.dart, _signInOrCreateAccount:
+The actual production bug: the release keystore SHA-1 is not registered on
+yoogeeapp, so Google sign-in works on debug builds (dev project) and fails with
+ApiException: 10 on release. Blocked on production Firebase access.
 
-    } on FirebaseAuthException catch (e) {
+Everything else is why nobody could tell what was failing:
 
-That is the ONLY catch. But the failures specific to Google sign-in do not
-come from Firebase - they come from the native Play Services plugin and are
-thrown as PlatformException:
+  - firebase_auth_manager.dart:315 catches only FirebaseAuthException. Google's
+    failures arrive as PlatformException and are never caught.
+  - firebase_auth_manager.dart:321 `e.message!` force-unwraps a nullable field,
+    so a null message throws a SECOND exception inside the catch block. That is
+    how email/password sign-in also fails silently. Same at :125 and :141.
+  - The Google buttons are FlutterFlowIconButton, whose showLoadingIndicator
+    defaults to FALSE. The email buttons are FFButtonWidget, which defaults to
+    TRUE. Adding the argument at two call sites is the whole loading fix - no
+    shared wrapper needed.
+  - nav.dart:391 prepareAuthEvent() sets notifyOnAuthChange=false and only
+    update() restores it, so a failed attempt leaves it stuck false.
 
-    ApiException: 10   DEVELOPER_ERROR - SHA-1 not registered for this
-                       package + Firebase project. THIS IS THE LIKELY ONE
-                       (see below).
-    ApiException: 7    NETWORK_ERROR
-    ApiException: 12501 user cancelled the account picker
-    ApiException: 12500 sign-in failed, generic
-
-None of those are a FirebaseAuthException, so none are caught. They propagate
-out of the button's onPressed as an unhandled async error: no snackbar, no
-crash dialog, nothing visible. Exactly the reported symptom.
-
-  WHY IT IS INTERMITTENT ("sometimes")
-  Verified 2026-08-18: the local debug keystore SHA-1
-
-      4E:00:BA:DF:9D:45:A5:79:C6:7A:E9:97:E2:92:B9:4F:63:14:6C:61
-
-  is registered on the DEV project (yogee-e62e2, android/app/src/debug/
-  google-services.json) but NOT on production yoogeeapp, whose
-  google-services.json lists five other hashes.
-
-  So Google sign-in works on debug builds (dev project) and fails with
-  ApiException: 10 on release builds (production). That is the "sometimes".
-
-  Fix: register the release/upload keystore's SHA-1 on yoogeeapp in the
-  Firebase console, then re-download android/app/google-services.json. Needs
-  production Firebase access.
-
-
-ROOT CAUSE (b) - NO LOADING STATE AT THE CALL SITES
-lib/auth/login/login_widget.dart:628 and lib/auth/signup/signup_widget.dart:1349
-
-    onPressed: () async {
-      GoRouter.of(context).prepareAuthEvent();
-      final user = await authManager.signInWithGoogle(context);
-      if (user == null) {
-        return;
-      }
-      context.goNamedAuth(DashboardWidget.routeName, context.mounted);
-    },
-
-The await can take several seconds (account picker, network, token exchange)
-and nothing on screen changes. The button is not disabled either, so repeated
-taps stack multiple concurrent sign-in attempts.
-
-Also note `if (user == null) return;` - a silent no-op that is reached BOTH
-when the user deliberately cancels the picker AND when sign-in genuinely
-failed. The two are indistinguishable to the user.
-
-
-ROOT CAUSE (c) - RAW ERROR TEXT
-Same function, the fallback arm of the message switch:
-
-    _ => 'Error: ${e.message!}',
-
-This prints Firebase's internal English straight into a snackbar, e.g. "Error:
-The supplied auth credential is incorrect, malformed or has expired". Only two
-codes have friendly text; everything else falls through to this.
-
-Separately, `e.message!` is a force unwrap. FirebaseAuthException.message is
-nullable, so an exception without a message throws a second exception inside
-the error handler.
-
-
-PROPOSED FIX
-  1. Catch PlatformException alongside FirebaseAuthException in
-     _signInOrCreateAccount, and map the ApiException codes above to plain
-     language. Treat 12501 (cancelled) as a silent no-op, not an error - it is
-     a normal user action.
-  2. Replace `e.message!` with `e.message ?? 'Something went wrong.'` and give
-     the common codes real copy: wrong-password, user-not-found,
-     network-request-failed, too-many-requests, account-exists-with-different-
-     credential.
-  3. Add a loading state to both call sites: disable the button and show a
-     spinner while the future is pending. The two sites are identical, so a
-     small shared wrapper in lib/custom_code/ is better than duplicating it -
-     and it survives a FlutterFlow re-export, which the page files do not.
-  4. Distinguish cancel from failure so the user gets feedback when something
-     actually broke.
-  5. Register the release keystore SHA-1 on production (blocked on access).
-
-Item 5 is the actual bug; 1-4 are why nobody could tell what the bug was.
+Note for anyone working from older copies of this file: the claim that repeated
+taps stack concurrent sign-in attempts is WRONG. Both button widgets guard
+re-entry with `if (loading) return;` regardless of the flag.

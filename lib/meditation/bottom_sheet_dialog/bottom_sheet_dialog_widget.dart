@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'bottom_sheet_dialog_model.dart';
+import '/custom_code/net_image.dart';
 export 'bottom_sheet_dialog_model.dart';
 
 class BottomSheetDialogWidget extends StatefulWidget {
@@ -73,7 +74,7 @@ class _BottomSheetDialogWidgetState extends State<BottomSheetDialogWidget> {
                         EdgeInsetsDirectional.fromSTEB(20.0, 0.0, 0.0, 0.0),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(8.0),
-                      child: Image.network(
+                      child: NetImage(
                         valueOrDefault<String>(
                           FFAppState().PosterImage,
                           'https://firebasestorage.googleapis.com/v0/b/yoogeeapp.firebasestorage.app/o/thumb.png?alt=media&token=e6577b33-e529-48be-8df3-6a94f5b68e16',

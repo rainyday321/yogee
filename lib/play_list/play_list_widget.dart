@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'play_list_model.dart';
+import '/custom_code/net_image.dart';
 export 'play_list_model.dart';
 
 class PlayListWidget extends StatefulWidget {
@@ -161,7 +162,7 @@ class _PlayListWidgetState extends State<PlayListWidget> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(8.0),
-                          child: Image.network(
+                          child: NetImage(
                             FFAppState().PosterImage,
                             width: 80.0,
                             height: 80.0,
@@ -308,7 +309,7 @@ class _PlayListWidgetState extends State<PlayListWidget> {
                                   children: [
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(8.0),
-                                      child: Image.network(
+                                      child: NetImage(
                                         valueOrDefault<String>(
                                           listViewSongsRecord.songCoverImage,
                                           'https://firebasestorage.googleapis.com/v0/b/yoogeeapp.firebasestorage.app/o/thumb.png?alt=media&token=e6577b33-e529-48be-8df3-6a94f5b68e16',

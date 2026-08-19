@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "453398507872-9hkgk7ektoa420e3k9amvtam3f3k51ef.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mycompany.yoogeeapp",
+            "certificate_hash": "209eb5e584586e8d585f5bd991bc35b2011422df"
+          }
+        },
+        {
           "client_id": "453398507872-e6kbhsovak52qg836bgbu47ds20g983s.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

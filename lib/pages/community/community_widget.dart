@@ -16,6 +16,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'community_model.dart';
+import '/custom_code/net_image.dart';
 export 'community_model.dart';
 
 class CommunityWidget extends StatefulWidget {
@@ -586,8 +587,8 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                                     shape: BoxShape
                                                                         .circle,
                                                                   ),
-                                                                  child: Image
-                                                                      .network(
+                                                                  child:
+                                                                      NetImage(
                                                                     valueOrDefault<
                                                                         String>(
                                                                       rowUsersRecord
@@ -596,9 +597,13 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                                     ),
                                                                     fit: BoxFit
                                                                         .cover,
-                                                                    errorBuilder: (context,
-                                                                            error,
-                                                                            stackTrace) =>
+                                                                    // Keeps the
+                                                                    // branded
+                                                                    // fallback
+                                                                    // this site
+                                                                    // already
+                                                                    // had.
+                                                                    errorWidget:
                                                                         Image
                                                                             .asset(
                                                                       'assets/images/error_image.png',
@@ -752,8 +757,8 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                                           ClipRRect(
                                                                         borderRadius:
                                                                             BorderRadius.circular(20.0),
-                                                                        child: Image
-                                                                            .network(
+                                                                        child:
+                                                                            NetImage(
                                                                           valueOrDefault<
                                                                               String>(
                                                                             listViewPostsRecord.image,
@@ -765,7 +770,8 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                                               130.0,
                                                                           fit: BoxFit
                                                                               .cover,
-                                                                          errorBuilder: (context, error, stackTrace) =>
+                                                                          // Keeps the branded fallback this site already had.
+                                                                          errorWidget:
                                                                               Image.asset(
                                                                             'assets/images/error_image.png',
                                                                             width:
@@ -1269,7 +1275,7 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                                               shape: BoxShape.circle,
                                                                             ),
                                                                             child:
-                                                                                Image.network(
+                                                                                NetImage(
                                                                               valueOrDefault<String>(
                                                                                 rowUsersRecord.photoUrl,
                                                                                 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png',
@@ -1378,7 +1384,7 @@ class _CommunityWidgetState extends State<CommunityWidget>
                                                                                   padding: EdgeInsetsDirectional.fromSTEB(0.0, 8.0, 0.0, 0.0),
                                                                                   child: ClipRRect(
                                                                                     borderRadius: BorderRadius.circular(20.0),
-                                                                                    child: Image.network(
+                                                                                    child: NetImage(
                                                                                       listViewPostsRecord.image,
                                                                                       width: 230.0,
                                                                                       height: 130.0,

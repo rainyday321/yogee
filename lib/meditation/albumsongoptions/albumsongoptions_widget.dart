@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'albumsongoptions_model.dart';
+import '/custom_code/net_image.dart';
 export 'albumsongoptions_model.dart';
 
 class AlbumsongoptionsWidget extends StatefulWidget {
@@ -111,7 +112,7 @@ class _AlbumsongoptionsWidgetState extends State<AlbumsongoptionsWidget> {
                               20.0, 0.0, 0.0, 0.0),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
-                            child: Image.network(
+                            child: NetImage(
                               valueOrDefault<String>(
                                 bottomSheetMaterialSongsRecord.songCoverImage,
                                 'https://firebasestorage.googleapis.com/v0/b/yoogeeapp.firebasestorage.app/o/thumb.png?alt=media&token=e6577b33-e529-48be-8df3-6a94f5b68e16',

@@ -17,6 +17,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:simple_gradient_text/simple_gradient_text.dart';
 import 'myprofilepage_model.dart';
+import '/custom_code/net_image.dart';
 export 'myprofilepage_model.dart';
 
 class MyprofilepageWidget extends StatefulWidget {
@@ -335,7 +336,7 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
                                                                     .circular(
                                                                         64.0),
                                                             child:
-                                                                Image.network(
+                                                                NetImage(
                                                               valueOrDefault<
                                                                   String>(
                                                                 currentUserPhoto,
@@ -1406,7 +1407,7 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
                                                                     .circle,
                                                               ),
                                                               child:
-                                                                  Image.network(
+                                                                  NetImage(
                                                                 valueOrDefault<
                                                                     String>(
                                                                   currentUserPhoto,
@@ -1577,8 +1578,7 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               20.0),
-                                                                      child: Image
-                                                                          .network(
+                                                                      child: NetImage(
                                                                         listViewPostsRecord
                                                                             .image,
                                                                         width:

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  DEBUG BUILDS ONLY. This file lives in src/debug/, so it is never merged into
+  a release APK or App Bundle - production keeps HTTPS-only enforcement.
+
+  The Firebase emulators (auth 9099, firestore 8080, storage 9199) serve plain
+  HTTP. Android blocks cleartext by default from API 28 onwards, which surfaces
+  as "Cleartext HTTP traffic to <host> not permitted".
+
+  base-config permits cleartext to ANY host in debug builds. That is broader
+  than listing individual addresses, and deliberate: the emulator host is a
+  DHCP-assigned LAN IP that changes when the router hands out a new lease, and
+  a hardcoded list breaks silently when it does. The loopback and AVD aliases
+  are listed below purely as documentation of the hosts actually in use.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- LAN address of the dev machine (see firebase_config.dart) -->
+        <domain includeSubdomains="false">192.168.1.219</domain>
+        <!-- adb reverse tunnel over USB -->
+        <domain includeSubdomains="false">127.0.0.1</domain>
+        <domain includeSubdomains="false">localhost</domain>
+        <!-- host alias from inside an Android AVD -->
+        <domain includeSubdomains="false">10.0.2.2</domain>
+    </domain-config>
+</network-security-config>

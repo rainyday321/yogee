@@ -9,7 +9,9 @@
       "Bash(grep -n \"CupertinoPageTransitionsBuilder\\\\|matchingBuilder\" ~/AppData/Local/Pub/Cache/hosted/pub.dev/page_transition-2.2.1/lib/src/page_transition.dart 2>&1 | head -20)",
       "Read(//c/Users/mammohamed/AppData/Local/Pub/Cache/hosted/pub.dev/page_transition-2.2.1/lib/src/**)",
       "mcp__figma__get_design_context",
-      "mcp__figma__get_screenshot"
+      "mcp__figma__get_screenshot",
+      "Bash(sed 's/^ *//')",
+      "Artifact"
     ]
   }
 }

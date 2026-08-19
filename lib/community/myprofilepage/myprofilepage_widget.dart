@@ -57,9 +57,6 @@ class _MyprofilepageWidgetState extends State<MyprofilepageWidget> {
   @override
   Widget build(BuildContext context) {
     context.watch<FFAppState>();
-    // TEMPORARY instrumentation - remove once the blank-profile bug is closed.
-    debugPrint('PROFILE build: currentUserReference=$currentUserReference '
-        'loggedIn=$loggedIn uid=${currentUser?.uid}');
 
     return GestureDetector(
       onTap: () {

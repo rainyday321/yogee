@@ -25,6 +25,26 @@ void main() {
     expect(cap, 1080);
   });
 
+  test('a non-finite width takes the ceiling instead of throwing', () {
+    // Regression: `width: double.infinity` is how a full-bleed image asks for
+    // the parent's width (detail_page_widget.dart:99). infinity * dpr is
+    // infinity, and .round() on that throws
+    // "Unsupported operation: Infinity or NaN toInt", which killed the screen.
+    expect(NetImage.decodeCap(double.infinity, 3.0), 1080);
+    expect(NetImage.decodeCap(double.nan, 3.0), 1080);
+    expect(NetImage.decodeCap(double.negativeInfinity, 3.0), 1080);
+  });
+
+  test('zero or negative width takes the ceiling', () {
+    expect(NetImage.decodeCap(0.0, 3.0), 1080);
+    expect(NetImage.decodeCap(-10.0, 3.0), 1080);
+  });
+
+  test('a non-finite devicePixelRatio cannot produce a bad cap', () {
+    expect(NetImage.decodeCap(90.0, double.infinity), 1080);
+    expect(NetImage.decodeCap(90.0, double.nan), 1080);
+  });
+
   test('the cap is always at least the logical width', () {
     // Guards against the inverted-conversion mistake (dividing by dpr).
     for (final w in [47.0, 52.0, 90.0, 260.0]) {

@@ -310,7 +310,20 @@ class FirebaseAuthManager extends AuthManager
     try {
       final userCredential = await signInFunc();
       if (userCredential?.user != null) {
-        await maybeCreateUser(userCredential!.user!);
+        // Firestore's set() resolves only when the server acknowledges the
+        // write, so with no connectivity maybeCreateUser never returns and the
+        // caller waits forever. The user is already authenticated by this
+        // point and the write stays queued locally, so a slow profile write
+        // must not hold them on the login screen -- let it land in the
+        // background and carry on.
+        await maybeCreateUser(userCredential!.user!).timeout(
+          const Duration(seconds: 15),
+          onTimeout: () {
+            debugPrint(
+                '$authProvider: maybeCreateUser timed out; write is queued');
+            return null;
+          },
+        );
       }
       if (userCredential == null) {
         // The user backed out (e.g. dismissed the Google account picker). Not

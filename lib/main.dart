@@ -163,6 +163,23 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('en', '')],
+      // Nearly every card in this app is a fixed-height box built from absolute
+      // pixel values (392 hard-coded `height:` literals across lib/), while the
+      // Text inside them scales with the OS font-size setting. Past ~1.2 the
+      // text outgrows the box: on the dashboard the "You Meditated" card fits
+      // its 203px by about four pixels at 1.0, and it is wrapped in a ClipRRect,
+      // so the overflow is silently sliced off instead of showing the usual
+      // overflow stripe.
+      //
+      // Clamping here is the one change that protects all of those boxes at
+      // once. It is a stopgap, not a fix -- it caps how much a user can enlarge
+      // text, which is an accessibility trade-off. Remove the ceiling as the
+      // fixed heights are replaced with content-driven sizing.
+      builder: (context, child) => MediaQuery.withClampedTextScaling(
+        minScaleFactor: 1.0,
+        maxScaleFactor: 1.2,
+        child: child!,
+      ),
       theme: ThemeData(
         brightness: Brightness.light,
         useMaterial3: false,

@@ -41,6 +41,7 @@ is not "follow" - false/true is a comment like. Table in the plan.
 ================================================================================
 
 Full plan: docs/image-loading-plan.md
+Transfer-side fix (pre-generated sizes, WebP): docs/image-variants-plan.md
 
 Root cause is the source assets, not the code: ~33 MB of PNG album covers on
 production (one is 12.6 MB), five of which the dashboard carousel fetches to

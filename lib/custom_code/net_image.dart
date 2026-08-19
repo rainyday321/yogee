@@ -63,9 +63,20 @@ class NetImage extends StatelessWidget {
   ///
   /// Split out so the devicePixelRatio conversion -- the easy thing to get
   /// wrong here -- can be tested without pumping a widget.
+  /// A non-finite width is normal, not exceptional: `width: double.infinity` is
+  /// how a full-bleed image says "as wide as the parent" (e.g. the hero at
+  /// detail_page_widget.dart:99). `infinity * dpr` is infinity and `.round()`
+  /// on that throws `Unsupported operation: Infinity or NaN toInt`, which took
+  /// down the whole screen. Anything not finite and positive has no size to
+  /// derive a cap from, so it takes the ceiling.
   @visibleForTesting
-  static int decodeCap(double? width, double devicePixelRatio) =>
-      width != null ? (width * devicePixelRatio).round() : _unsizedCeiling;
+  static int decodeCap(double? width, double devicePixelRatio) {
+    if (width == null || !width.isFinite || width <= 0) {
+      return _unsizedCeiling;
+    }
+    final cap = width * devicePixelRatio;
+    return cap.isFinite && cap >= 1 ? cap.round() : _unsizedCeiling;
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -1,0 +1,41 @@
+name: ios-sim
+
+# Builds an iOS Simulator .app and uploads it as a zipped artifact, for
+# testing on Appetize.io (which runs simulators, so it needs a .app bundle
+# and will not accept an .ipa).
+#
+# Manual only: macOS runner minutes bill at 10x, so this must not fire on
+# every push. GitHub only offers workflow_dispatch for workflows present on
+# the default branch, but the run itself can target any ref.
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          # Pinned, not "stable": flutter_localizations here pins intl to
+          # exactly 0.20.2, and newer Flutter requires ^0.20.3, which makes
+          # `flutter pub get` fail with "version solving failed".
+          flutter-version: 3.41.7
+          cache: true
+
+      - run: flutter pub get
+
+      # Debug, because Flutter has no AOT for the simulator -- --release and
+      # --profile both fail there. Output: build/ios/iphonesimulator/Runner.app
+      - run: flutter build ios --simulator
+
+      # ditto, not zip: it preserves the symlinks inside the .app's embedded
+      # frameworks. A plain `zip -r` produces a bundle Appetize rejects.
+      - run: >
+          ditto -c -k --sequesterRsrc --keepParent
+          build/ios/iphonesimulator/Runner.app Runner.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Runner-sim
+          path: Runner.zip
